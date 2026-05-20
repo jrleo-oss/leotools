@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>iGet Hospitality — Ahmed Ibrahim Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500;600&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sand: #F7F3EE; --sand-2: #EDE7DC;
+    --text: #1A1612; --text-2: #4A3F35; --text-muted: #8C7D6E;
+    --border: #D8CEBC; --white: #FDFAF6; --green: #3D6B4F;
+    --teal: #1499B4; --teal-dark: #0d7a8f;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--sand); color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh; padding: 40px 20px 80px;
+    display: flex; justify-content: center;
+  }
+  body.ar { font-family: 'Cairo', sans-serif; direction: rtl; }
+  .page { width:100%; max-width:720px; }
+
+  /* ── Lang Toggle ── */
+  .lang-bar { display:flex; justify-content:flex-end; margin-bottom:20px; }
+  body.ar .lang-bar { justify-content:flex-start; }
+  .lang-toggle { display:flex; background:var(--white); border:1px solid var(--border); border-radius:4px; overflow:hidden; }
+  .lang-btn { padding:7px 18px; font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; cursor:pointer; border:none; background:none; color:var(--text-muted); font-family:'DM Sans',sans-serif; transition:background 0.2s,color 0.2s; }
+  .lang-btn.active { background:var(--teal); color:#fff; }
+  .lang-btn:hover:not(.active) { background:rgba(20,153,180,0.08); color:var(--teal); }
+
+  /* ── Saved notice ── */
+  .save-toast {
+    position:fixed; bottom:28px; right:28px; z-index:9999;
+    background:var(--green); color:#fff; border-radius:6px;
+    padding:11px 22px; font-size:12px; font-weight:600; letter-spacing:1px;
+    box-shadow:0 8px 28px rgba(0,0,0,0.18);
+    opacity:0; transform:translateY(12px);
+    transition:opacity 0.25s, transform 0.25s;
+    pointer-events:none;
+  }
+  body.ar .save-toast { right:auto; left:28px; font-family:'Cairo',sans-serif; letter-spacing:0; }
+  .save-toast.show { opacity:1; transform:translateY(0); }
+
+
+  /* ── Header ── */
+  .header { display:flex; align-items:center; justify-content:space-between; padding-bottom:28px; border-bottom:1.5px solid var(--border); margin-bottom:36px; gap:20px; }
+  .header-brand { display:flex; align-items:center; gap:18px; }
+  .logo-badge { width:68px; height:68px; background:var(--teal); border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; flex-shrink:0; gap:6px; padding:12px 8px 10px; }
+  .logo-waves { display:flex; flex-direction:column; gap:3.5px; width:100%; align-items:center; }
+  .wave-line { height:2.5px; border-radius:2px; background:white; }
+  .logo-iget { font-family:'DM Sans',sans-serif; font-size:15px; font-weight:700; color:white; letter-spacing:2px; line-height:1; }
+  .brand-name { display:flex; flex-direction:column; gap:2px; }
+  .brand-name h1 { font-family:'Playfair Display',serif; font-size:34px; font-weight:600; color:#1A1612; line-height:1; letter-spacing:-0.5px; }
+  body.ar .brand-name h1 { font-family:'Cairo',sans-serif; font-size:30px; }
+  .brand-name span { font-size:11px; font-weight:500; letter-spacing:3px; text-transform:uppercase; color:var(--teal); }
+  body.ar .brand-name span { letter-spacing:1px; }
+  .header-right { font-size:11px; font-weight:500; letter-spacing:1px; color:var(--text-muted); text-align:right; line-height:1.7; flex-shrink:0; }
+  body.ar .header-right { text-align:left; letter-spacing:0; }
+
+  /* Section label */
+  .section-label { font-size:9px; font-weight:600; letter-spacing:3.5px; text-transform:uppercase; color:var(--teal); margin-bottom:14px; display:flex; align-items:center; gap:10px; }
+  body.ar .section-label { letter-spacing:1px; font-size:10px; }
+  .section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  /* Form card */
+  .form-card { background:var(--white); border:1px solid var(--border); border-radius:4px; padding:30px 30px 24px; margin-bottom:14px; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
+  .fields-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .field { display:flex; flex-direction:column; gap:6px; }
+  .field.full { grid-column:1/-1; }
+  label { font-size:10px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); }
+  body.ar label { letter-spacing:0; font-size:11px; }
+  input, select { width:100%; background:var(--sand); border:1px solid var(--border); border-radius:3px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:14px; font-weight:400; padding:11px 14px; outline:none; transition:border-color 0.2s,background 0.2s; -webkit-appearance:none; }
+  body.ar input, body.ar select { font-family:'Cairo',sans-serif; text-align:right; }
+  input:focus, select:focus { border-color:var(--teal); background:#fff; }
+  select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%231499B4' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:36px; cursor:pointer; }
+  body.ar select { background-position:left 14px center; padding-right:14px; padding-left:36px; }
+
+  /* Date picker */
+  .date-picker-row { display:flex; align-items:stretch; background:var(--sand); border:1px solid var(--border); border-radius:3px; overflow:hidden; cursor:pointer; transition:border-color 0.2s; }
+  .date-picker-row:hover { border-color:var(--teal); }
+  .date-half { flex:1; padding:12px 16px; display:flex; flex-direction:column; gap:4px; transition:background 0.15s; }
+  .date-half:hover { background:rgba(20,153,180,0.06); }
+  .date-half.selected-side { background:rgba(20,153,180,0.1); }
+  .date-half-label { font-size:9px; font-weight:600; letter-spacing:2.5px; text-transform:uppercase; color:var(--teal); }
+  body.ar .date-half-label { letter-spacing:0; font-size:10px; font-family:'Cairo',sans-serif; }
+  .date-half-val { font-size:14px; font-weight:500; color:var(--text-muted); }
+  body.ar .date-half-val { font-family:'Cairo',sans-serif; }
+  .date-half-val.picked { color:var(--text); font-weight:600; }
+  .date-divider { display:flex; align-items:center; padding:0 6px; color:var(--border); }
+  .nights-badge { margin-top:8px; display:inline-flex; align-items:center; gap:6px; background:rgba(20,153,180,0.1); border:1px solid var(--teal); border-radius:20px; padding:5px 14px; font-size:11px; font-weight:600; color:var(--teal); letter-spacing:0.5px; width:fit-content; }
+  body.ar .nights-badge { font-family:'Cairo',sans-serif; letter-spacing:0; }
+
+  /* Calendar */
+  .cal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; width:100%; height:100%; z-index:9999; background:rgba(26,22,18,0.5); -webkit-overflow-scrolling:touch; }
+  .cal-overlay.open { display:block; }
+  .cal-center { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:90%; max-width:320px; }
+  .cal-popup { background:var(--white); border:1px solid var(--border); border-radius:8px; padding:24px; width:320px; box-shadow:0 20px 60px rgba(0,0,0,0.18); animation:popIn 0.18s ease; }
+  @keyframes popIn { from{transform:scale(0.94);opacity:0} to{transform:scale(1);opacity:1} }
+  .cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+  .cal-month-label { font-family:'Playfair Display',serif; font-size:17px; font-weight:400; color:var(--text); }
+  body.ar .cal-month-label { font-family:'Cairo',sans-serif; }
+  .cal-nav { background:none; border:1px solid var(--border); border-radius:3px; cursor:pointer; color:var(--text-2); font-size:20px; line-height:1; width:32px; height:32px; display:flex; align-items:center; justify-content:center; transition:background 0.15s,border-color 0.15s; }
+  .cal-nav:hover { background:rgba(20,153,180,0.1); border-color:var(--teal); }
+  .cal-grid-head { display:grid; grid-template-columns:repeat(7,1fr); text-align:center; margin-bottom:6px; }
+  .cal-grid-head span { font-size:9px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-muted); padding:4px 0; }
+  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+  .cal-day { aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:400; color:var(--text); border-radius:3px; cursor:pointer; transition:background 0.12s,color 0.12s; border:1px solid transparent; user-select:none; }
+  .cal-day:hover:not(.disabled):not(.empty) { background:rgba(20,153,180,0.1); border-color:var(--teal); }
+  .cal-day.empty { cursor:default; }
+  .cal-day.disabled { color:var(--border); cursor:not-allowed; }
+  .cal-day.in-range { background:rgba(20,153,180,0.1); border-radius:0; }
+  .cal-day.range-start,.cal-day.range-end { background:var(--teal); color:#fff; font-weight:600; border-radius:3px; border-color:var(--teal); }
+  .cal-day.today { border-color:var(--teal); font-weight:600; }
+
+  /* Button */
+  .btn { width:100%; padding:15px; background:var(--teal); border:none; border-radius:3px; color:#fff; font-family:'DM Sans',sans-serif; font-size:11px; font-weight:600; letter-spacing:3.5px; text-transform:uppercase; cursor:pointer; transition:background 0.2s; margin-bottom:28px; }
+  body.ar .btn { font-family:'Cairo',sans-serif; letter-spacing:1px; font-size:13px; }
+  .btn:hover { background:var(--teal-dark); }
+
+  /* Output */
+  .quote-output { display:none; }
+  .quote-output.visible { display:block; }
+  .quote-box-wrap { background:var(--white); border:1px solid var(--border); border-radius:4px; overflow:hidden; margin-bottom:14px; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
+  .quote-box-header { display:flex; justify-content:space-between; align-items:center; padding:12px 18px; background:rgba(20,153,180,0.08); border-bottom:1px solid var(--border); }
+  .quote-box-title { font-size:9px; font-weight:600; letter-spacing:3px; text-transform:uppercase; color:var(--teal); }
+  body.ar .quote-box-title { letter-spacing:0; font-size:10px; font-family:'Cairo',sans-serif; }
+  .copy-btn { display:flex; align-items:center; gap:6px; background:var(--teal); border:none; border-radius:3px; color:#fff; font-family:'DM Sans',sans-serif; font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; padding:6px 12px; cursor:pointer; transition:background 0.2s; }
+  body.ar .copy-btn { font-family:'Cairo',sans-serif; letter-spacing:0; }
+  .copy-btn:hover { background:var(--teal-dark); }
+  .copy-btn.copied { background:var(--green); }
+  .quote-text { padding:24px 28px; font-size:13.5px; font-weight:400; line-height:2; color:var(--text); white-space:pre-wrap; font-family:'DM Sans',sans-serif; user-select:text; }
+  body.ar .quote-text { font-family:'Cairo',sans-serif; text-align:right; }
+
+  /* Numbers */
+  .numbers-card { background:var(--white); border:1px solid var(--border); border-radius:4px; padding:26px 28px; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
+  .num-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--sand-2); font-size:13px; }
+  .num-row:last-child { border-bottom:none; }
+  .num-label { font-size:10px; font-weight:500; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-muted); }
+  body.ar .num-label { letter-spacing:0; font-size:11px; font-family:'Cairo',sans-serif; }
+  .num-val { font-weight:600; color:var(--text); font-size:14px; }
+  body.ar .num-val { font-family:'Cairo',sans-serif; }
+  .total-row { display:flex; justify-content:space-between; align-items:center; padding:18px 0 4px; border-top:1.5px solid var(--teal); margin-top:6px; }
+  .total-label { font-family:'Playfair Display',serif; font-size:20px; font-weight:400; color:var(--text-2); }
+  body.ar .total-label { font-family:'Cairo',sans-serif; }
+  .total-val { font-family:'Playfair Display',serif; font-size:28px; font-weight:600; color:var(--teal); }
+  body.ar .total-val { font-family:'Cairo',sans-serif; }
+  .access-note-bar { display:flex; justify-content:space-between; align-items:center; background:rgba(20,153,180,0.08); border:1px dashed var(--teal); border-radius:3px; padding:11px 16px; margin-top:12px; }
+  .access-note-bar span:first-child { font-size:9px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--teal); }
+  body.ar .access-note-bar span:first-child { letter-spacing:0; font-size:11px; font-family:'Cairo',sans-serif; }
+  .access-note-bar span:last-child { font-weight:600; color:var(--text-2); font-size:13px; }
+  body.ar .access-note-bar span:last-child { font-family:'Cairo',sans-serif; }
+  .split-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
+  .split-item { background:var(--sand); border:1px solid var(--border); border-radius:3px; padding:14px 16px; }
+  .split-item-label { font-size:9px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px; }
+  body.ar .split-item-label { letter-spacing:0; font-size:10px; font-family:'Cairo',sans-serif; }
+  .split-item-val { font-family:'Playfair Display',serif; font-size:20px; font-weight:600; color:var(--text); }
+  body.ar .split-item-val { font-family:'Cairo',sans-serif; }
+  .split-item.dep .split-item-val { color:var(--teal); }
+  .split-item.rem .split-item-val { color:var(--green); }
+
+  @media (max-width:500px) {
+    .fields-grid { grid-template-columns:1fr; }
+    .field.full { grid-column:1; }
+    .header { flex-direction:column; align-items:flex-start; gap:12px; }
+    .header-right { text-align:left; }
+    .split-row { grid-template-columns:1fr; }
+    .cal-popup { width:290px; padding:18px; }
+    .brand-name h1 { font-size:26px; }
+    .storage-bar { flex-direction:column; align-items:flex-start; gap:10px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Lang Toggle -->
+  <div class="lang-bar">
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="btnEN" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" id="btnAR" onclick="setLang('ar')">AR</button>
+    </div>
+  </div>
+
+
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-brand">
+      <div class="logo-badge">
+        <div class="logo-waves">
+          <div class="wave-line" style="width:50%"></div>
+          <div class="wave-line" style="width:70%"></div>
+          <div class="wave-line" style="width:58%"></div>
+        </div>
+        <div class="logo-iget">IGET</div>
+      </div>
+      <div class="brand-name">
+        <h1 id="brandTitle">iGet Hospitality</h1>
+        <span id="brandSub">Quotation Planner</span>
+      </div>
+    </div>
+    <div class="header-right" id="dateDisplay"></div>
+  </div>
+
+  <!-- Form -->
+  <div class="form-card">
+    <div class="section-label" id="lblProjectDetails">Project Details</div>
+    <div class="fields-grid">
+
+      <div class="field full">
+        <label id="lblProject">Project Name</label>
+        <select id="projectName" onchange="autoSave()">
+          <option value="" id="optSelect">— Select Project —</option>
+          <option>Marassi</option>
+          <option>Hacienda White</option>
+          <option>Hacienda Bay</option>
+          <option>Fouka Bay</option>
+          <option>Seashell</option>
+          <option>Mont Galala</option>
+        </select>
+      </div>
+
+      <div class="field full">
+        <label id="lblDates">Stay Dates</label>
+        <div class="date-picker-row" id="datePickerRow" style="cursor:pointer;">
+          <div class="date-half" id="checkinBox" style="pointer-events:none;">
+            <span class="date-half-label" id="lblCheckin">Check-in</span>
+            <span class="date-half-val" id="checkinVal">Select date</span>
+          </div>
+          <div class="date-divider" style="pointer-events:none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </div>
+          <div class="date-half" id="checkoutBox" style="pointer-events:none;">
+            <span class="date-half-label" id="lblCheckout">Check-out</span>
+            <span class="date-half-val" id="checkoutVal">Select date</span>
+          </div>
+        </div>
+        <div class="nights-badge" id="nightsBadge" style="display:none">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+          <span id="nightsBadgeText"></span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label id="lblNightRate">Night Rate (EGP)</label>
+        <input type="number" id="nightRate" placeholder="0" min="0" oninput="autoSave()" />
+      </div>
+      <div class="field">
+        <label id="lblNights">Number of Nights</label>
+        <input type="number" id="numNights" placeholder="0" min="1" readonly style="background:var(--sand-2);cursor:default;" />
+      </div>
+      <div class="field">
+        <label id="lblAccess">Access Fee (EGP)</label>
+        <input type="number" id="accessFee" placeholder="0" min="0" oninput="autoSave()" />
+      </div>
+      <div class="field">
+        <label id="lblInsurance">Insurance (EGP)</label>
+        <input type="number" id="insurance" placeholder="0" min="0" oninput="autoSave()" />
+      </div>
+    </div>
+  </div>
+
+  <button class="btn" id="generateBtn" onclick="generate()">Generate Quotation</button>
+
+  <!-- Output -->
+  <div class="quote-output" id="quoteOutput">
+    <div class="section-label" id="lblFormatted">Formatted Quote</div>
+    <div class="quote-box-wrap">
+      <div class="quote-box-header">
+        <span class="quote-box-title" id="lblReady">Ready to Send</span>
+        <button class="copy-btn" id="copyBtn" onclick="copyQuote()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          <span id="copyTxt">Copy</span>
+        </button>
+      </div>
+      <div class="quote-text" id="quoteText"></div>
+    </div>
+    <div class="section-label" id="lblBreakdown" style="margin-top:24px;">Breakdown</div>
+    <div class="numbers-card">
+      <div class="num-row"><span class="num-label" id="bLblProject">Project</span><span class="num-val" id="bProject">—</span></div>
+      <div class="num-row"><span class="num-label" id="bLblDates">Check-in / Check-out</span><span class="num-val" id="bDates">—</span></div>
+      <div class="num-row"><span class="num-label" id="bLblNight">Night Rate × Nights</span><span class="num-val" id="bNightCost">—</span></div>
+      <div class="num-row"><span class="num-label" id="bLblIns">Insurance</span><span class="num-val" id="bInsurance">—</span></div>
+      <div class="total-row">
+        <span class="total-label" id="bLblTotal">Total</span>
+        <span class="total-val" id="bTotal">—</span>
+      </div>
+      <div class="access-note-bar">
+        <span id="bLblAccess">Access Fee — Not Included</span>
+        <span id="bAccess">—</span>
+      </div>
+      <div class="split-row">
+        <div class="split-item dep"><div class="split-item-label" id="bLblDep">Deposit — 50%</div><div class="split-item-val" id="bDeposit">—</div></div>
+        <div class="split-item rem"><div class="split-item-label" id="bLblRem">Remaining Balance</div><div class="split-item-val" id="bRemaining">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center; margin-top:48px; padding-top:20px; border-top:1px solid var(--border);">
+    <span style="font-size:10px; font-weight:500; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted);">By Ahmed Ibrahim</span>
+  </div>
+
+</div>
+
+<!-- Calendar -->
+<div class="cal-overlay" id="calOverlay">
+  <div class="cal-center">
+    <div class="cal-popup" id="calPopup">
+      <div class="cal-header">
+        <button class="cal-nav" id="calPrev">&#8249;</button>
+        <span class="cal-month-label" id="calMonthLabel"></span>
+        <button class="cal-nav" id="calNext">&#8250;</button>
+      </div>
+      <div class="cal-grid-head" id="calGridHead"></div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Save Toast -->
+<div class="save-toast" id="saveToast"></div>
+
+<script>
+// ── Translations ──
+const T = {
+  en: {
+    brandTitle:'iGet Hospitality', brandSub:'Quotation Planner',
+    projectDetails:'Project Details', project:'Project Name',
+    selectProject:'— Select Project —', dates:'Stay Dates',
+    checkin:'Check-in', checkout:'Check-out', selectDate:'Select date',
+    nightRate:'Night Rate (EGP)', numNights:'Number of Nights',
+    accessFee:'Access Fee (EGP)', insurance:'Insurance (EGP)',
+    generateBtn:'Generate Quotation',
+    formatted:'Formatted Quote', ready:'Ready to Send', copy:'Copy', copied:'Copied!',
+    breakdown:'Breakdown',
+    bProject:'Project', bDates:'Check-in / Check-out', bNight:'Night Rate × Nights',
+    bIns:'Insurance', bTotal:'Total', bAccess:'Access Fee — Not Included',
+    bDep:'Deposit — 50%', bRem:'Remaining Balance',
+    nightWord:'night', nightsWord:'nights',
+    dayNames:['Su','Mo','Tu','We','Th','Fr','Sa'],
+    months:['January','February','March','April','May','June','July','August','September','October','November','December'],
+    alertProject:'Please select a project.', alertDates:'Please select check-in and check-out dates.',
+    quoteNo:'Quotation No', date:'Date', projectLbl:'Project',
+    checkinLbl:'Check-in', checkoutLbl:'Check-out',
+    nightRateLbl:'Night Rate', perNight:'/ night', duration:'Duration',
+    accommodation:'Accommodation', insuranceLbl:'Insurance',
+    totalLbl:'Total', depositLbl:'Deposit (50%)', remainingLbl:'Remaining',
+    accessNoteLbl:'Access fee not included', separateLbl:'separate',
+    storageInfo:'💾 Auto-save enabled — your data is stored locally',
+    saveNow:'Save Now', clearSaved:'Clear Saved',
+    toastSaved:'✓ Data saved!', toastCleared:'✓ Cleared!', toastLoaded:'✓ Previous data loaded',
+  },
+  ar: {
+    brandTitle:'آي جيت للضيافة', brandSub:'مخطط عروض الأسعار',
+    projectDetails:'تفاصيل المشروع', project:'اسم المشروع',
+    selectProject:'— اختر المشروع —', dates:'تواريخ الإقامة',
+    checkin:'تاريخ الوصول', checkout:'تاريخ المغادرة', selectDate:'اختر تاريخ',
+    nightRate:'سعر الليلة (جنيه)', numNights:'عدد الليالي',
+    accessFee:'رسوم الدخول (جنيه)', insurance:'التأمين (جنيه)',
+    generateBtn:'إنشاء عرض السعر',
+    formatted:'العرض المنسق', ready:'جاهز للإرسال', copy:'نسخ', copied:'تم النسخ!',
+    breakdown:'التفاصيل',
+    bProject:'المشروع', bDates:'الوصول / المغادرة', bNight:'سعر الليلة × الليالي',
+    bIns:'التأمين', bTotal:'الإجمالي', bAccess:'رسوم الدخول — غير مشمولة',
+    bDep:'العربون — 50%', bRem:'المبلغ المتبقي',
+    nightWord:'ليلة', nightsWord:'ليالي',
+    dayNames:['أح','اث','ثل','أر','خم','جم','سب'],
+    months:['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'],
+    alertProject:'يرجى اختيار المشروع.', alertDates:'يرجى اختيار تاريخ الوصول والمغادرة.',
+    quoteNo:'رقم العرض', date:'التاريخ', projectLbl:'المشروع',
+    checkinLbl:'الوصول', checkoutLbl:'المغادرة',
+    nightRateLbl:'سعر الليلة', perNight:'/ ليلة', duration:'المدة',
+    accommodation:'الإيجار', insuranceLbl:'التأمين',
+    totalLbl:'الإجمالي', depositLbl:'العربون (50%)', remainingLbl:'المتبقي',
+    accessNoteLbl:'رسوم الدخول غير مشمولة', separateLbl:'منفصلة',
+    storageInfo:'💾 الحفظ التلقائي مفعّل — بياناتك محفوظة محليًا',
+    saveNow:'حفظ الآن', clearSaved:'مسح المحفوظ',
+    toastSaved:'✓ تم الحفظ!', toastCleared:'✓ تم المسح!', toastLoaded:'✓ تم تحميل البيانات السابقة',
+  }
+};
+
+const STORAGE_KEY = 'iget_ahmed_ibrahim_tools_v1';
+let lang = 'en';
+let autoSaveTimer = null;
+
+// ── Local Storage ──
+function saveToStorage(showToast = false) {
+  try {
+    const data = {
+      lang,
+      project: document.getElementById('projectName').value,
+      nightRate: document.getElementById('nightRate').value,
+      accessFee: document.getElementById('accessFee').value,
+      insurance: document.getElementById('insurance').value,
+      checkin: checkinDate ? checkinDate.getTime() : null,
+      checkout: checkoutDate ? checkoutDate.getTime() : null,
+      savedAt: Date.now()
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    if (showToast) showSaveToast(t('toastSaved'));
+  } catch(e) { console.warn('Storage error:', e); }
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (data.lang) { lang = data.lang; }
+    if (data.project) {
+      const sel = document.getElementById('projectName');
+      for (let opt of sel.options) { if (opt.value === data.project) { sel.value = data.project; break; } }
+    }
+    if (data.nightRate) document.getElementById('nightRate').value = data.nightRate;
+    if (data.accessFee) document.getElementById('accessFee').value = data.accessFee;
+    if (data.insurance) document.getElementById('insurance').value = data.insurance;
+    if (data.checkin) { checkinDate = new Date(data.checkin); checkinDate.setHours(0,0,0,0); }
+    if (data.checkout) { checkoutDate = new Date(data.checkout); checkoutDate.setHours(0,0,0,0); }
+    return true;
+  } catch(e) { console.warn('Load error:', e); return false; }
+}
+
+function clearStorage() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+    document.getElementById('projectName').value = '';
+    document.getElementById('nightRate').value = '';
+    document.getElementById('accessFee').value = '';
+    document.getElementById('insurance').value = '';
+    checkinDate = null; checkoutDate = null;
+    updateDateUI();
+    document.getElementById('quoteOutput').classList.remove('visible');
+    showSaveToast(t('toastCleared'));
+  } catch(e) {}
+}
+
+function autoSave() {
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(() => saveToStorage(false), 800);
+}
+
+function showSaveToast(msg) {
+  const toast = document.getElementById('saveToast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+// ── Lang ──
+function setLang(l) {
+  lang = l;
+  document.documentElement.lang = l;
+  document.body.classList.toggle('ar', l === 'ar');
+  document.getElementById('btnEN').classList.toggle('active', l==='en');
+  document.getElementById('btnAR').classList.toggle('active', l==='ar');
+  applyTranslations();
+  updateDateUI();
+  updateDateDisplay();
+  saveToStorage(false);
+}
+
+function t(k) { return T[lang][k] || T['en'][k]; }
+
+function applyTranslations() {
+  document.getElementById('brandTitle').textContent = t('brandTitle');
+  document.getElementById('brandSub').textContent = t('brandSub');
+  document.getElementById('lblProjectDetails').textContent = t('projectDetails');
+  document.getElementById('lblProject').textContent = t('project');
+  document.querySelector('#projectName option[id="optSelect"]').textContent = t('selectProject');
+  document.getElementById('lblDates').textContent = t('dates');
+  document.getElementById('lblCheckin').textContent = t('checkin');
+  document.getElementById('lblCheckout').textContent = t('checkout');
+  document.getElementById('lblNightRate').textContent = t('nightRate');
+  document.getElementById('lblNights').textContent = t('numNights');
+  document.getElementById('lblAccess').textContent = t('accessFee');
+  document.getElementById('lblInsurance').textContent = t('insurance');
+  document.getElementById('generateBtn').textContent = t('generateBtn');
+  document.getElementById('lblFormatted').textContent = t('formatted');
+  document.getElementById('lblReady').textContent = t('ready');
+  document.getElementById('copyTxt').textContent = t('copy');
+  document.getElementById('lblBreakdown').textContent = t('breakdown');
+  document.getElementById('bLblProject').textContent = t('bProject');
+  document.getElementById('bLblDates').textContent = t('bDates');
+  document.getElementById('bLblNight').textContent = t('bNight');
+  document.getElementById('bLblIns').textContent = t('bIns');
+  document.getElementById('bLblTotal').textContent = t('bTotal');
+  document.getElementById('bLblAccess').textContent = t('bAccess');
+  document.getElementById('bLblDep').textContent = t('bDep');
+  document.getElementById('bLblRem').textContent = t('bRem');
+  if (!checkinDate) document.getElementById('checkinVal').textContent = t('selectDate');
+  if (!checkoutDate) document.getElementById('checkoutVal').textContent = t('selectDate');
+}
+
+// ── Date display ──
+const now = new Date();
+function updateDateDisplay() {
+  const loc = lang === 'ar' ? 'ar-EG' : 'en-GB';
+  document.getElementById('dateDisplay').innerHTML =
+    now.toLocaleDateString(loc, {weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+
+function egp(n){ return 'EGP '+Number(n).toLocaleString('en',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function quoteNum(){ return 'QT-'+String(Math.floor(Math.random()*90000+10000)); }
+
+// ── Calendar ──
+let calMode=null, calYear=now.getFullYear(), calMonth=now.getMonth();
+let checkinDate=null, checkoutDate=null;
+
+function openPicker(mode){
+  calMode=mode;
+  if(mode==='checkout'&&checkinDate){calYear=checkinDate.getFullYear();calMonth=checkinDate.getMonth();}
+  else{calYear=now.getFullYear();calMonth=now.getMonth();}
+  renderCal();
+  document.getElementById('calOverlay').classList.add('open');
+}
+function closeCal(){ document.getElementById('calOverlay').classList.remove('open'); calMode=null; }
+function shiftMonth(d){
+  calMonth+=d;
+  if(calMonth>11){calMonth=0;calYear++;}
+  if(calMonth<0){calMonth=11;calYear--;}
+  renderCal();
+}
+function renderCal(){
+  document.getElementById('calMonthLabel').textContent = t('months')[calMonth]+' '+calYear;
+  const head = document.getElementById('calGridHead');
+  head.innerHTML = '';
+  t('dayNames').forEach(d=>{ const s=document.createElement('span');s.textContent=d;head.appendChild(s); });
+  const grid=document.getElementById('calGrid'); grid.innerHTML='';
+  const first=new Date(calYear,calMonth,1).getDay();
+  const days=new Date(calYear,calMonth+1,0).getDate();
+  const today=new Date(); today.setHours(0,0,0,0);
+  for(let i=0;i<first;i++){const e=document.createElement('div');e.className='cal-day empty';grid.appendChild(e);}
+  for(let d=1;d<=days;d++){
+    const date=new Date(calYear,calMonth,d); date.setHours(0,0,0,0);
+    const el=document.createElement('div'); el.className='cal-day'; el.textContent=d;
+    if(date.getTime()===today.getTime())el.classList.add('today');
+    if(date<today&&calMode==='checkin')el.classList.add('disabled');
+    if(calMode==='checkout'&&checkinDate&&date<=checkinDate)el.classList.add('disabled');
+    if(checkinDate&&date.getTime()===checkinDate.getTime())el.classList.add('range-start');
+    if(checkoutDate&&date.getTime()===checkoutDate.getTime())el.classList.add('range-end');
+    if(checkinDate&&checkoutDate&&date>checkinDate&&date<checkoutDate)el.classList.add('in-range');
+    if(!el.classList.contains('disabled')){
+      el.addEventListener('click',()=>pickDate(date));
+      el.addEventListener('touchend',function(e){e.preventDefault();pickDate(date);});
+    }
+    grid.appendChild(el);
+  }
+}
+function pickDate(date){
+  if(calMode==='checkin'){checkinDate=date;checkoutDate=null;updateDateUI();calMode='checkout';renderCal();}
+  else{checkoutDate=date;updateDateUI();closeCal();saveToStorage(false);}
+}
+function fmtDate(d){
+  const loc = lang==='ar'?'ar-EG':'en-GB';
+  return d.toLocaleDateString(loc,{day:'2-digit',month:'short',year:'numeric'});
+}
+function updateDateUI(){
+  const ciVal=document.getElementById('checkinVal');
+  const coVal=document.getElementById('checkoutVal');
+  const badge=document.getElementById('nightsBadge');
+  const nights=document.getElementById('numNights');
+  if(checkinDate){ciVal.textContent=fmtDate(checkinDate);ciVal.classList.add('picked');document.getElementById('checkinBox').classList.add('selected-side');}
+  else{ciVal.textContent=t('selectDate');ciVal.classList.remove('picked');document.getElementById('checkinBox').classList.remove('selected-side');}
+  if(checkoutDate){coVal.textContent=fmtDate(checkoutDate);coVal.classList.add('picked');document.getElementById('checkoutBox').classList.add('selected-side');}
+  else{coVal.textContent=t('selectDate');coVal.classList.remove('picked');document.getElementById('checkoutBox').classList.remove('selected-side');}
+  if(checkinDate&&checkoutDate){
+    const n=Math.round((checkoutDate-checkinDate)/86400000);
+    nights.value=n; badge.style.display='flex';
+    document.getElementById('nightsBadgeText').textContent=n+' '+(n===1?t('nightWord'):t('nightsWord'));
+  } else {nights.value='';badge.style.display='none';}
+}
+
+// ── Generate ──
+function generate(){
+  const project=document.getElementById('projectName').value.trim();
+  const nightRate=parseFloat(document.getElementById('nightRate').value)||0;
+  const nights=parseFloat(document.getElementById('numNights').value)||0;
+  const access=parseFloat(document.getElementById('accessFee').value)||0;
+  const insurance=parseFloat(document.getElementById('insurance').value)||0;
+  if(!project){alert(t('alertProject'));return;}
+  if(nights<1){alert(t('alertDates'));return;}
+  const nightCost=nightRate*nights;
+  const total=nightCost+insurance;
+  const deposit=total*0.5;
+  const remaining=total-deposit;
+  const qn=quoteNum();
+  const loc=lang==='ar'?'ar-EG':'en-GB';
+  const dateStr=now.toLocaleDateString(loc,{day:'2-digit',month:'long',year:'numeric'});
+  const ciStr=checkinDate?fmtDate(checkinDate):'—';
+  const coStr=checkoutDate?fmtDate(checkoutDate):'—';
+  const nWord=nights===1?t('nightWord'):t('nightsWord');
+
+  let txt;
+  if(lang==='ar'){
+    txt=[
+      `${t('quoteNo')}: ${qn}`,`${t('date')}: ${dateStr}`,`${t('projectLbl')}: ${project}`,``,
+      `${t('checkinLbl')}: ${ciStr}`,`${t('checkoutLbl')}: ${coStr}`,``,
+      `${t('nightRateLbl')}: ${egp(nightRate)} ${t('perNight')}`,`${t('duration')}: ${nights} ${nWord}`,``,
+      `${t('accommodation')}: ${egp(nightCost)}`,`${t('insuranceLbl')}: ${egp(insurance)}`,``,
+      `${t('totalLbl')}: ${egp(total)}`,`${t('depositLbl')}: ${egp(deposit)}`,`${t('remainingLbl')}: ${egp(remaining)}`,``,
+      `${t('accessNoteLbl')}`,`${egp(access)} ${t('separateLbl')}`,
+    ].join('\n');
+  } else {
+    txt=[
+      `Quotation No: ${qn}`,`Date: ${dateStr}`,`Project: ${project}`,``,
+      `Check-in: ${ciStr}`,`Check-out: ${coStr}`,``,
+      `Night Rate: ${egp(nightRate)} / night`,`Duration: ${nights} ${nWord}`,``,
+      `Accommodation: ${egp(nightCost)}`,`Insurance: ${egp(insurance)}`,``,
+      `Total: ${egp(total)}`,`Deposit (50%): ${egp(deposit)}`,`Remaining: ${egp(remaining)}`,``,
+      `Access fee not included`,`${egp(access)} separate`,
+    ].join('\n');
+  }
+
+  document.getElementById('quoteText').textContent=txt;
+  window._quoteText=txt;
+  document.getElementById('bProject').textContent=project;
+  document.getElementById('bDates').textContent=ciStr+' → '+coStr;
+  document.getElementById('bNightCost').textContent=`${egp(nightRate)} × ${nights} = ${egp(nightCost)}`;
+  document.getElementById('bInsurance').textContent=egp(insurance);
+  document.getElementById('bTotal').textContent=egp(total);
+  document.getElementById('bAccess').textContent=egp(access);
+  document.getElementById('bDeposit').textContent=egp(deposit);
+  document.getElementById('bRemaining').textContent=egp(remaining);
+
+  const out=document.getElementById('quoteOutput');
+  out.classList.add('visible');
+  setTimeout(()=>out.scrollIntoView({behavior:'smooth',block:'start'}),100);
+  resetCopyBtn();
+}
+
+function resetCopyBtn(){
+  const cb=document.getElementById('copyBtn');
+  cb.classList.remove('copied');
+  cb.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg><span id="copyTxt">${t('copy')}</span>`;
+}
+
+function copyQuote(){
+  if(!window._quoteText)return;
+  navigator.clipboard.writeText(window._quoteText).then(()=>{
+    const cb=document.getElementById('copyBtn');
+    cb.classList.add('copied');
+    cb.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polyline points="20 6 9 12 4 10"/><polyline points="20 6 9 18 4 14"/></svg><span>${t('copied')}</span>`;
+    setTimeout(resetCopyBtn, 2500);
+  });
+}
+
+// ── Init ──
+(function init() {
+  const loaded = loadFromStorage();
+
+  // Date picker row
+  const row = document.getElementById('datePickerRow');
+  function handleRowTap(e) {
+    const rect = row.getBoundingClientRect();
+    const mid = rect.left + rect.width / 2;
+    const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+    openPicker(x < mid ? 'checkin' : 'checkout');
+  }
+  row.addEventListener('click', handleRowTap);
+  row.addEventListener('touchend', function(e){ e.preventDefault(); handleRowTap(e); });
+
+  // Overlay close
+  const overlay = document.getElementById('calOverlay');
+  const popup = document.getElementById('calPopup');
+  function handleOverlayTap(e) {
+    if (!popup.contains(e.target)) closeCal();
+  }
+  overlay.addEventListener('click', handleOverlayTap);
+  overlay.addEventListener('touchend', function(e){ e.preventDefault(); handleOverlayTap(e); });
+  // Nav buttons
+  function addBtn(id, fn) {
+    const el = document.getElementById(id);
+    el.addEventListener('click', fn);
+    el.addEventListener('touchend', function(e){ e.preventDefault(); fn(); });
+  }
+  addBtn('calPrev', () => shiftMonth(-1));
+  addBtn('calNext', () => shiftMonth(1));
+  document.documentElement.lang = lang;
+  document.body.classList.toggle('ar', lang === 'ar');
+  document.getElementById('btnEN').classList.toggle('active', lang==='en');
+  document.getElementById('btnAR').classList.toggle('active', lang==='ar');
+  applyTranslations();
+  updateDateUI();
+  updateDateDisplay();
+  if (loaded) setTimeout(() => showSaveToast(t('toastLoaded')), 600);
+})();
+</script>
+</body>
+</html>
